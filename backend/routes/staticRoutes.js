@@ -49,33 +49,35 @@ router.post('/signup', async (req, res) => {
     }
 });
 
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-  
-    if (!(email && password)) {
-      return res.status(400).json({ message: "Please enter both fields." });
-    }
-  
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found. Please sign up first." });
-    }
-  
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: "Incorrect password." });
-    }
 
-    // Token generation logic
-    const token = setUser(user); 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
-    });
-  
-    return res.status(200).json({ message: "Login successful" });
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!(email && password)) {
+    return res.status(400).json({ message: "Please enter both fields." });
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "User not found. Please sign up first." });
+  }
+
+  const isValidPassword = await bcrypt.compare(password, user.password);
+  if (!isValidPassword) {
+    return res.status(401).json({ message: "Incorrect password." });
+  }
+
+  // Token generation logic
+  const token = setUser(user); 
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
+  });
+
+  return res.status(200).json({ message: "Login successful" });
 });
+
 
 module.exports = router;
