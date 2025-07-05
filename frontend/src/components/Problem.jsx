@@ -121,6 +121,27 @@ int main() {
   const [error, setError] = useState(null);
   
   const containerRef = useRef(null);
+  
+  const defaultCodes = {
+    cpp: `#include <iostream>
+  using namespace std;
+  
+  int main() {
+      cout << "Hello World!" << endl;
+      return 0;
+  }`,
+    java: `public class Hello {
+      public static void main(String[] args) {
+          System.out.println("Hello from Java!");
+      }
+  }`,
+    py: print("Hello World!"),
+    js: console.log("Hello World"),
+  };
+  
+  const handleChangeLanguageToSetCode = (lang) => {
+    setCode(defaultCodes[lang] || "//Write your Code here...");
+  };
 
   // Fetch problem data from backend
   useEffect(() => {
@@ -194,6 +215,29 @@ int main() {
     setIsResizing(false);
   };
 
+  const handleEdit = (id) => {
+    // Get Req -> Form fill -> changes admin -> Click update -> PUT Req (Updates the data in DB) 
+    navigate(/admin/problem-form/${id});
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await axios.delete(${import.meta.env.VITE_URL}/admin/problem/${id}, {
+        withCredentials: true,
+      });
+
+      toast.success("Problem deleted successfully!", {
+        autoClose: 1500,
+      });
+
+      // Refresh the problem list without reloading
+      setProblems(prev => prev.filter(problem => problem._id !== id));
+    } catch (error) {
+      toast.error("Failed to delete problem");
+      console.error("Delete error:", error);
+    }
+  };
+
   const handleRun = async () => {
     // send a req -> i.e. axios.post with language & code sampletestcase .... 
     // redirect only left part to Output (section) 
@@ -213,6 +257,34 @@ int main() {
       setActiveRightTab('Output');
     }
   };
+
+  const handleCustomTestcase = async () => {
+    // send a req -> i.e. axios.post with language & code customtestcase.... 
+    // redirect only left part to Output (section) 
+    // SHow the output of that res from backend....
+
+      // if(!customTestcase) {
+      //   // display that write a Custom Test case
+      //   // navigate("/testcase");
+      // }
+
+      // await axios.post(${import.meta.env.VITE_COMPILER_URL}/run, {
+      //    language : selectedLanguage,
+      //    code : code,
+      //   //  testcase : customtestcase,
+      // });
+
+    setActiveRightTab('Test Cases');
+  }
+
+
+  const handleSubmit = async () => {
+      // await axios.post(${import.meta.env.VITE_COMPILER_URL}/submit, {
+      //   language : selectedLanguage,
+      //   code : code,
+      // });
+      setActiveLeftTab('Submissions');
+  }
 
   useEffect(() => {
     if (isResizing) {
@@ -640,7 +712,7 @@ int main() {
 
           {/* Action Buttons */}
           <div className="flex justify-end items-center space-x-3 p-4 border-t border-gray-700">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm font-medium hover:cursor-pointer">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm font-medium hover:cursor-pointer"  onClick={handleCustomTestcase}>
               <FileText className="w-4 h-4" />
               <span>Test Against Custom Input</span>
             </button>
@@ -650,7 +722,7 @@ int main() {
               <span>Run</span>
             </button>
             
-            <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm font-medium hover:cursor-pointer" >
+            <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm font-medium hover:cursor-pointer" onClick={handleSubmit}>
               <Send className="w-4 h-4" />
               <span>Submit</span>
             </button>
