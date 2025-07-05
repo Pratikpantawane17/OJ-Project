@@ -28,7 +28,7 @@ app.post('/run', async (req, res) => {
 
     try {
         const filePath = generateFile(language, code);
-    
+        const inputFilePath = generateInputFile(input);
         if(!filePath) return res.status(404).json({
             success: false,
             message: "File not found",

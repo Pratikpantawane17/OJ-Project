@@ -17,7 +17,29 @@ const executeFile = (filePath, inputFilePath, language) => {   //D:\ALgoU compil
     // command = g++ ${filePath} -o ${outPath} && ${outputFileName} --- (for Windows)
     // console.log("Running:", command);
 
-   let command =  `g++ "${filePath}" -o "${outPath}" && "${outPath}"`;
+    let command;
+
+    switch(language) {
+        case "cpp": 
+            command = `g++ "${filePath}" -o "${outPath}" && "${outPath}" < "${inputFilePath}"`;
+            break;
+    
+        case "py":
+            command = `python ${filePath}`;
+            break;
+        
+        case "java":
+            command = `java "${filePath}"`;
+            break;
+    
+        case "js":
+            command = `node "${filePath}"`;
+            break;
+    
+        default:
+            throw new Error("Unsupported Language");
+    }
+
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout, stderr) => {
             if(error) {
