@@ -2,19 +2,23 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrash, FaArrowRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+
 import ConfirmDeleteModal from './ConfirmDeleteModal'; 
+import Navbar from './Navbar';
+import useLogout from '../hooks/useLogout';
+import { toast } from 'react-toastify';
+
 
 const ProblemList = () => {
   const navigate = useNavigate();
+  const { logout } = useLogout();
   const [problems, setProblems] = useState([]);
   const [userRole, setUserRole] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedProblemId, setSelectedProblemId] = useState(null);
 
   const handleClick = (id) => {
-    navigate(`/user/problemlist/${id}`);
+    navigate(`/problemlist/${id}`);
   }
 
   const handleEdit = (id) => {
@@ -40,6 +44,7 @@ const ProblemList = () => {
     }
   };
 
+
   useEffect(() => {
     const fetchProblems = async () => {
       try {
@@ -52,18 +57,13 @@ const ProblemList = () => {
         setUserRole(response.data.role || '');
       } catch (error) {
         if (error.response && error.response.status === 401) {
-          toast.error("User is Not Logged In! Redirecting to Login page", {
-            autoClose: 1500,
-            pauseOnHover: false,
-            closeOnClick: false,
-            draggable: false,
-          });
-
-          setTimeout(() => {
-            navigate("/login");
-          }, 1500);
-        } else {
+          toast.error("User is Not Logged In! Please login first");
+          
+        navigate("/login");
+        } 
+        else {
           console.error("Failed to fetch problems:", error);
+          toast.error("Failed to fetch Problems")
         }
       }
     };
@@ -73,20 +73,26 @@ const ProblemList = () => {
 
   const isAdmin = userRole === 'ADMIN';
 
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      // Clear local user state
+      setUserRole('');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0d1117] via-[#161b22] to-[#1f2937] text-white px-4 py-6">
-      <ToastContainer />
-      {/* Logo Header */}
-      <header className="flex items-center px-6 py-4 space-x-3">
-        <img
-          src="/logo_white.png"
-          alt="AlgoArena Logo"
-          className="w-10 h-10"
-        />
-        <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
-          AlgoArena
-        </span>
-      </header>
+
+    <>
+
+    <Navbar 
+      isAuthenticated={!!userRole}
+      onLogout={handleLogout}
+      onNavigate={navigate}
+    />
+
+    <div className="min-h-screen pt-16 bg-gradient-to-b from-[#0d1117] via-[#161b22] to-[#1f2937]  text-white px-4 py-6">
+     
 
       {/* Page Heading */}
       <h1 className="text-3xl sm:text-4xl font-semibold text-center mt-4 mb-10 bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
@@ -178,6 +184,8 @@ const ProblemList = () => {
         }}
       />
     </div>
+    
+    </>
   );
 };
 
