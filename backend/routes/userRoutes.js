@@ -99,7 +99,6 @@ router.post('/logout', (req, res) => {
 });
 
 
-
 // Dashboard
 router.get('/dashboard', async (req, res) => {
   try {
@@ -257,6 +256,40 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+// AI recommendation
+router.post('/ai-recommendation', async (req, res) => {
+    const problem = req.body.problemData;
+    const submission = req.body.submission;
+    // const {problem, submission} = req.body;
 
+    // console.log(submission);
+    
+    if(!submission.code || submission.code.trim() == '') {
+      return res.status(400).json({
+        success: false,
+        message: "Code is empty!",
+      });
+    }
+
+    try {
+        const aiResponse = await generateAiResponse(problem, submission);
+
+        // console.log(aiResponse);
+
+        return res.status(200).json({
+          success: true,
+          message: "AI review generated successfully.",
+          aiResponse,
+        });
+    } 
+    catch (error) {
+      console.log("Error : ", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Error occur! Fail to get AI review",
+      });
+    }
+})
 
 module.exports = router;
