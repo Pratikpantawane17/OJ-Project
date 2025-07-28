@@ -18,6 +18,8 @@ const ProblemForm = () => {
     constraints: '',
     inputFormat: '',
     outputFormat: '',
+    sampleTestcases: [{ input: '', expectedOutput: '', explanation: '' }],
+    hiddenTestcases: [{ input: '', expectedOutput: '' }],
     images: '',
     hints: '',
   });
@@ -34,6 +36,15 @@ const ProblemForm = () => {
             withCredentials: true, // ✅ important
           });
           const fetched = res.data;
+          console.log("Fetched Problem Data:", fetched);
+          console.log("Fetched Problem Data:", fetched.hiddenTestcases);
+          
+          // Convert hiddenTestcases from Mongoose documents to plain JS objects
+          const hiddenTestcases = (fetched.hiddenTestcases || []).map(tc => ({
+            input: tc.input || '',
+            expectedOutput: tc.expectedOutput || '',
+          }));
+          
           setProblemData({
             title: fetched.title || '',
             statement: fetched.statement || '',
@@ -43,6 +54,12 @@ const ProblemForm = () => {
             constraints: fetched.constraints?.join(', ') || '',
             inputFormat: fetched.inputFormat || '',
             outputFormat: fetched.outputFormat || '',
+            sampleTestcases: fetched.sampleTestcases?.length
+            ? fetched.sampleTestcases
+            : [{ input: '', expectedOutput: '', explanation: '' }],
+          hiddenTestcases: hiddenTestcases?.length
+            ? hiddenTestcases
+            : [{ input: '', expectedOutput: '' }],
             images: fetched.images?.join(', ') || '',
             hints: fetched.hints?.join(', ') || '',
           });
@@ -64,6 +81,34 @@ const ProblemForm = () => {
     }));
   };
 
+    // Sample testcases handlers
+  const addSampleTestcase = () => {
+    setProblemData(prev => ({
+      ...prev,
+      sampleTestcases: [...prev.sampleTestcases, { input: '', expectedOutput: '', explanation: '' }]
+    }));
+  };
+
+  const updateSample = (index, field, value) => {
+    const updated = [...problemData.sampleTestcases];
+    updated[index][field] = value;
+    setProblemData(prev => ({ ...prev, sampleTestcases: updated }));
+  };
+
+  // Hidden testcases handlers
+  const addHiddenTestcase = () => {
+    setProblemData(prev => ({
+      ...prev,
+      hiddenTestcases: [...prev.hiddenTestcases, { input: '', expectedOutput: '' }]
+    }));
+  };
+
+  const updateHidden = (index, field, value) => {
+    const updated = [...problemData.hiddenTestcases];
+    updated[index][field] = value;
+    setProblemData(prev => ({ ...prev, hiddenTestcases: updated }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -74,6 +119,8 @@ const ProblemForm = () => {
       images: problemData.images.split(',').map(img => img.trim()),
       constraints: problemData.constraints.split(',').map(constraint => constraint.trim()).filter(constraint => constraint.length > 0),
       hints: problemData.hints.split(',').map(hint => hint.trim()).filter(hint => hint.length > 0),
+      sampleTestcases: problemData.sampleTestcases,
+      hiddenTestcases: problemData.hiddenTestcases,
     };
 
     try {
@@ -93,7 +140,7 @@ const ProblemForm = () => {
         toast.success("Problem created successfully!");
       }
 
-      setTimeout(() => navigate("/user/problemlist"), 1500);
+      setTimeout(() => navigate("/problemlist"), 1500);
     } 
     
     catch (err) {
@@ -142,6 +189,98 @@ const ProblemForm = () => {
               />
             </div>
 
+            {/* Sample Testcases */}
+            <div>
+              <label className="text-sm font-semibold mb-2 block">Sample Testcases <span className="text-red-400">*</span></label>
+              {problemData.sampleTestcases.map((tc, idx) => (
+                <div key={idx} className="mb-4 space-y-2">
+                  <textarea
+                    placeholder="Input"
+                    value={tc.input}
+                    onChange={e => updateSample(idx, 'input', e.target.value)}
+                    required
+                    className="w-full p-2 rounded bg-[#334155] border border-[#475569] text-white"
+                  />
+                  <textarea
+                    placeholder="Expected Output"
+                    value={tc.expectedOutput}
+                    onChange={e => updateSample(idx, 'expectedOutput', e.target.value)}
+                    required
+                    className="w-full p-2 rounded bg-[#334155] border border-[#475569] text-white"
+                  />
+                  <textarea
+                    placeholder="Explanation"
+                    value={tc.explanation}
+                    onChange={e => updateSample(idx, 'explanation', e.target.value)}
+                    className="w-full p-2 rounded bg-[#334155] border border-[#475569] text-white"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSampleTestcase}
+                className="text-emerald-400 hover:underline cursor-pointer"
+              >
+                + Add Sample Testcase
+              </button>
+            </div>
+
+            {/* Hidden Testcases */}
+            <div>
+              <label className="text-sm font-semibold mb-2 block">Hidden Testcases <span className="text-red-400">*</span></label>
+              {problemData.hiddenTestcases.map((tc, idx) => (
+                <div key={idx} className="mb-4 space-y-2">
+                  <textarea
+                    placeholder="Input"
+                    value={tc.input}
+                    onChange={e => updateHidden(idx, 'input', e.target.value)}
+                    required
+                    className="w-full p-2 rounded bg-[#334155] border border-[#475569] text-white"
+                  />
+                  <textarea
+                    placeholder="Expected Output"
+                    value={tc.expectedOutput}
+                    onChange={e => updateHidden(idx, 'expectedOutput', e.target.value)}
+                    required
+                    className="w-full p-2 rounded bg-[#334155] border border-[#475569] text-white"
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addHiddenTestcase}
+                className="text-emerald-400 hover:underline cursor-pointer"
+              >
+                + Add Hidden Testcase
+              </button>
+            </div>
+
+
+            {/* INPUT + OUTPUT FORMAT */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold mb-2">Input Format</label>
+                <input
+                  name="inputFormat"
+                  value={problemData.inputFormat}
+                  onChange={handleChange}
+                  placeholder="Describe input format"
+                  className="p-3 rounded-md bg-[#334155] border border-[#475569] placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-sm font-semibold mb-2">Output Format</label>
+                <input
+                  name="outputFormat"
+                  value={problemData.outputFormat}
+                  onChange={handleChange}
+                  placeholder="Describe output format"
+                  className="p-3 rounded-md bg-[#334155] border border-[#475569] placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
             {/* DIFFICULTY + CONSTRAINTS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
@@ -173,30 +312,6 @@ const ProblemForm = () => {
               </div>
             </div>
 
-            {/* INPUT + OUTPUT FORMAT */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col">
-                <label className="text-sm font-semibold mb-2">Input Format</label>
-                <input
-                  name="inputFormat"
-                  value={problemData.inputFormat}
-                  onChange={handleChange}
-                  placeholder="Describe input format"
-                  className="p-3 rounded-md bg-[#334155] border border-[#475569] placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-sm font-semibold mb-2">Output Format</label>
-                <input
-                  name="outputFormat"
-                  value={problemData.outputFormat}
-                  onChange={handleChange}
-                  placeholder="Describe output format"
-                  className="p-3 rounded-md bg-[#334155] border border-[#475569] placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-            </div>
 
             {/* TAGS */}
               <div className="flex flex-col">

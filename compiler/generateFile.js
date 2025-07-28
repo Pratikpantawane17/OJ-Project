@@ -13,7 +13,22 @@ const generateFile = (language, code) => {
     const jobId = uuid();  //fhsdghsagfjsdfhfsdf
     const fileName = `${jobId}.${language}`;   // fhsdghsagfjsdfhfsdf.cpp
     const filePath = path.join(dirCode, fileName);  //D:\ALgoU compiler\compiler/codes/fhsdghsagfjsdfhfsdf.cpp
-    fs.writeFileSync(filePath, code); 
+    
+     let finalCode = code;
+     console.log("Lanugae : ", language);
+     
+    if (language === "js") {
+    finalCode = `
+const fs = require('fs');
+let __algoarena_input__ = '';
+if (process.argv[2]) {
+    __algoarena_input__ = fs.readFileSync(process.argv[2], 'utf8');
+}
+${code}
+    `.trim();
+}
+
+    fs.writeFileSync(filePath, finalCode);
     return filePath;
 }
 

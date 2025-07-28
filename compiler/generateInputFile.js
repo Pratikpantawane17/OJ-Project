@@ -9,11 +9,17 @@ if (!fs.existsSync(dirInputs)) {
 }
 
 // Creates a temporary file with user's input data
-const generateInputFile =  (input) => {
+const generateInputFile =  (input = "") => {
+
     const jobId = uuid();
     const inputFileName = `${jobId}.txt`;
     const inputFilePath = path.join(dirInputs, inputFileName);
+    // fs.writeFileSync(inputFilePath, JSON.stringify(input));
     fs.writeFileSync(inputFilePath, input);
+
+    console.log("Input File Path : ", inputFilePath);
+    console.log("Input : ", input);
+    
     return inputFilePath;
 };
 
