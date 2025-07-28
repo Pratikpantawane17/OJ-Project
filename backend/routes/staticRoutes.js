@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router(); 
-const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const { setUser, getUser }= require('../service/auth');
+const Problem = require("../models/Problem");
+const User = require("../models/User")
+const Submission = require("../models/Submission")
+
 
 
 router.post('/signup', async (req, res) => {
@@ -51,7 +54,7 @@ router.post('/signup', async (req, res) => {
 
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe  } = req.body;
 
   if (!(email && password)) {
     return res.status(400).json({ message: "Please enter both fields." });
@@ -67,16 +70,56 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ message: "Incorrect password." });
   }
 
+  let maxAge;
+  if (rememberMe) {
+    maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+  } else {
+    maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+  }
+
   // Token generation logic
   const token = setUser(user); 
   res.cookie("token", token, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
-    maxAge: 24 * 60 * 60 * 1000 // 1 day
+    maxAge: maxAge
   });
 
   return res.status(200).json({ message: "Login successful" });
+});
+
+// add necessary things
+router.get('/stats', async (req, res) => {
+ try {
+   // 1) Get count of all problems, users, and submissions
+   const [problemCount, userCount, submissionCount] = await Promise.all([
+     Problem.countDocuments(),
+     User.countDocuments(),
+     Submission.countDocuments()
+   ]);
+
+   // 2) Send it to frontend
+   res.json({
+     success: true,
+     data: {
+       problems: problemCount,
+       users: userCount,
+       submissions: submissionCount
+     }
+   });
+ } catch (error) {
+   console.error('Error fetching stats:', error);
+   res.status(500).json({
+     success: false,
+     message: 'Failed to fetch statistics',
+     data: {
+       problems: 0,
+       users: 0,
+       submissions: 0
+     }
+   });
+ }
 });
 
 

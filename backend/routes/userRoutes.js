@@ -1,11 +1,20 @@
 const express = require("express");
 const Problem = require("../models/Problem");
+const User = require("../models/User")
+const Submission = require("../models/Submission")
+const ProblemSolved = require("../models/ProblemSolved");
 const router = express.Router();
+const { generateAiResponse } = require("./generateAiResponse")
 
 // Home Page Backend
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+    const userData = await User.findOne({ _id: req.user._id })
+    // console.log("User Data: ", userData);
+
     return res.status(200).json({
+        success: true,
         user : true,
+        userData,
     })
 }); 
 
@@ -42,7 +51,8 @@ router.get('/problemlist/:id', async (req, res) => {
   try {
     const id = req.params.id;
     const problem = await Problem.findById(id);
-    console.log(problem);
+
+    // console.log(problem);
     if (!problem) {
       return res.status(404).json({
         success: false,
@@ -64,6 +74,31 @@ router.get('/problemlist/:id', async (req, res) => {
     });
   }
 });
+
+router.post('/logout', (req, res) => {
+  try {
+    
+    res.clearCookie('token', {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production', // Use secure in production
+      sameSite: 'strict'
+    });
+    
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to logout"
+    });
+  }
+
+});
+
+
 
 
 module.exports = router;
