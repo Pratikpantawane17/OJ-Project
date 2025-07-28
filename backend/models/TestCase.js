@@ -14,13 +14,15 @@ const testcaseSchema = new mongoose.Schema({
         type: String,
         required: [true, "Expected output is required"]
     },
+    // You can remove this bcz the sampleTestcase is stored in Problem Schema itself....
     isSample: {
         type: Boolean,
         default: false
     },
-    explanation: {
-        type: String,
-    },
+    // // Not neccessary to have explanation for each test case....
+    // explanation: {
+    //     type: String,
+    // },
 });
 
 module.exports = mongoose.model("testcase", testcaseSchema);
