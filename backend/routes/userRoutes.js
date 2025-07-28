@@ -100,5 +100,163 @@ router.post('/logout', (req, res) => {
 
 
 
+// Dashboard
+router.get('/dashboard', async (req, res) => {
+  try {
+    // Get user ID from authenticated request
+    const userId = req.user._id;
+
+
+    // 1. Get all solved problems by the user
+    const solvedProblems = await ProblemSolved.find({ userId })
+      .populate('problemId', 'title difficulty _id')
+      .sort({ dateSolved: -1 });
+
+
+    // 2. Get all submissions by the user
+    const allSubmissions = await Submission.find({ userId });
+
+    // console.log("All Submissions:", allSubmissions);
+    // 3. Calculate basic counts
+    const problemCount = solvedProblems.length;
+    const submissionCount = allSubmissions.length;
+   
+
+    // 4. Calculate difficulty-wise counts
+    let easy = 0, medium = 0, hard = 0;
+    
+    solvedProblems.forEach(solved => {
+      const difficulty = solved.problemId?.difficulty || 'Easy';
+      switch (difficulty.toLowerCase()) {
+        case 'easy':
+          easy++;
+          break;
+        case 'medium':
+          medium++;
+          break;
+        case 'hard':
+          hard++;
+          break;
+        default:
+          easy++; // Default to easy if difficulty is unclear
+      }
+    });
+
+    // 5. Calculate acceptance rate
+    const acceptedSubmissions = allSubmissions.filter(
+      submission => submission.status === 'Accepted' || submission.verdict === 'Accepted'
+    ).length;
+    
+    const acceptanceRate = submissionCount > 0 
+      ? (acceptedSubmissions / submissionCount) * 100 
+      : 0;
+
+    // 6. Get total difficulty counts from problems schema
+    const totalEasyProblems = await Problem.countDocuments({ difficulty: { $regex: /^easy$/i } });
+    const totalMediumProblems = await Problem.countDocuments({ difficulty: { $regex: /^medium$/i } });
+    const totalHardProblems = await Problem.countDocuments({ difficulty: { $regex: /^hard$/i } });
+
+    if (solvedProblems.length > 0) {
+  console.log("Date and Time:", solvedProblems[0].createdAt);
+}
+    // 7. Format solved problems for frontend
+    const formattedSolvedProblems = solvedProblems.map(solved => ({
+      title: solved.problemId?.title || 'Unknown Problem',
+      id: solved.problemId?._id?.toString() || solved.problemId,
+      dateSolved: solved.createdAt
+        ? new Date(solved.createdAt).toISOString().split('T')[0]
+        : null,
+      difficulty: solved.problemId?.difficulty || 'Easy'
+    }));
+
+
+    // 8. Calculate max streak
+    const calculateMaxStreak = (problems) => {
+      if (problems.length === 0) return 0;
+
+      const sortedDates = [...new Set(
+        problems.map(p => new Date(p.dateSolved).toDateString())
+      )].sort((a, b) => new Date(a) - new Date(b));
+
+      let maxStreak = 1;
+      let currentStreak = 1;
+
+      for (let i = 1; i < sortedDates.length; i++) {
+        const prevDate = new Date(sortedDates[i - 1]);
+        const currDate = new Date(sortedDates[i]);
+        const diff = (currDate - prevDate) / (1000 * 60 * 60 * 24);
+        if (diff === 1) currentStreak++;
+        else currentStreak = 1;
+        maxStreak = Math.max(maxStreak, currentStreak);
+      }
+
+      return maxStreak;
+    };
+
+    // 9. Calculate active days (unique submission/solving dates)
+    const calculateActiveDays = (problems) => {
+      if (problems.length === 0) return 0;
+      return new Set(problems.map(p => p.dateSolved)).size;
+    };
+
+    const maxStreak = calculateMaxStreak(formattedSolvedProblems);
+    const activeDays = calculateActiveDays(formattedSolvedProblems);
+
+    // 10. Prepare response data
+    const dashboardData = {
+      problemData: {
+        problemCount,
+        easy,
+        medium,
+        hard,
+        solvedProblems: formattedSolvedProblems,
+        submissionCount,
+        acceptanceRate: Math.round(acceptanceRate * 10) / 10, // Round to 1 decimal place
+        maxStreak,
+        activeDays,
+        difficultyTotals: {
+          Easy: totalEasyProblems,
+          Medium: totalMediumProblems,
+          Hard: totalHardProblems
+        }
+      }
+    };
+
+    // 11. Send successful response
+    return res.status(200).json({
+      success: true,
+      message: "Dashboard data fetched successfully",
+      ...dashboardData
+    });
+
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    
+    // Return error response with fallback data structure
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard data",
+      error: error.message,
+      problemData: {
+        problemCount: 0,
+        easy: 0,
+        medium: 0,
+        hard: 0,
+        solvedProblems: [],
+        submissionCount: 0,
+        acceptanceRate: 0,
+        maxStreak: 0,
+        activeDays: 0,
+        difficultyTotals: {
+          Easy: 0,
+          Medium: 0,
+          Hard: 0
+        }
+      }
+    });
+  }
+});
+
+
 
 module.exports = router;

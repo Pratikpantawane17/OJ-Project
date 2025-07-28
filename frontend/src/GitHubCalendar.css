@@ -1,0 +1,40 @@
+/* For HeatMap */
+/* make the month & weekday labels light gray */
+.react-calendar-heatmap text {
+  fill: #aaa !important;
+}
+
+/* dark background for empty days */
+.react-calendar-heatmap .color-empty {
+  fill: #1f2937 !important; /* e.g. tailwind-gray‑800 */
+}
+
+/* contribution levels 1–4 — pick whatever green shades you’d like */
+.react-calendar-heatmap .color-github-2 { fill: #16a34a !important; }
+.react-calendar-heatmap .color-github-3 { fill: #22c55e !important; }
+.react-calendar-heatmap .color-github-4 { fill: #4ade80 !important; }
+
+/* make the SVG fluid & scale down nicely */
+.react-calendar-heatmap > svg {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.react-calendar-heatmap > svg {
+  margin: 0 !important;
+}
+
+.react-calendar-heatmap > svg {
+  background: transparent !important;
+  border-radius: 1rem !important; /* matches card */
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.10); /* subtle shadow */
+  padding: 16px !important; /* add padding inside card */
+  border: none !important;
+}
+
+/* Remove any default border from SVG */
+.react-calendar-heatmap > svg {
+  border: none !important;
+}
+
+
