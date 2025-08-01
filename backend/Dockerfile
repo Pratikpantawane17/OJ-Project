@@ -1,3 +1,5 @@
+# NOTE : We have passed the .env file while runnig the command and NOT copied directly because of which it will not be visible in /app Docker folder...but it will be working stil... 
+
 # Use Node.js 22 Alpine image
 FROM node:22-alpine
 

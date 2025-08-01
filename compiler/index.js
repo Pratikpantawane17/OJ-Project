@@ -135,112 +135,222 @@ app.post('/run', async (req, res) => {
 
 // Submit Route
 // Original ROute
+// app.post('/submit', async (req, res) => {
+//     const { code, language, problemId} = req.body;
+
+//     const token = req.cookies.token;
+//     if (!token) {
+//       return res.status(401).json({ message: "User is Not loggeIn" });
+//     }
+
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); 
+//     const userId = decoded._id; 
+
+
+//     if (!code || !language || !problemId || !userId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Code, language, userId, and problemId are required.",
+//       });
+//     }
+  
+//     try {
+//       const testcases = await Testcase.find({ problemId });
+  
+//       for (const testCase of testcases) {
+//         const filePath = generateFile(language, code);
+//         const inputFilePath = generateInputFile(testCase.input);
+  
+//         const rawOutput = await executeFile(filePath, inputFilePath, language);
+//         const output = rawOutput.replace(/\r\n/g, '\n').trim();
+//         const expected = testCase.expectedOutput.replace(/\r\n/g, '\n').trim();
+  
+//         if (output !== expected) {
+//           const submission = await Submission.create({
+//             problemId,
+//             userId,
+//             language,
+//             code,
+//             verdict: "Wrong Answer",
+//             input: testCase.input,
+//             output,
+//             expectedOutput: expected,
+//             failedTestCases: [{
+//               input: testCase.input,
+//               output,
+//               expectedOutput: expected,
+//             }]
+//           });
+  
+//           return res.status(200).json({
+//             verdict: "Wrong Answer",
+//             failedTestCase: {
+//               input: testCase.input,
+//               output,
+//               expected: expected,
+//             },
+//             timestamp: submission.createdAt, // Send back timestamp
+//             language,
+//           });
+//         }
+//       }
+  
+//       const acceptedSubmission = await Submission.create({
+//         problemId,
+//         userId,
+//         language,
+//         code,
+//         verdict: "Accepted",
+//       });
+      
+//       const alreadySolved = await ProblemSolved.findOne({ userId, problemId });
+
+//       if (!alreadySolved) {
+//         await ProblemSolved.create({ userId, problemId });
+//       }
+
+//       return res.status(200).json({
+//         verdict: "Accepted",
+//         timestamp: acceptedSubmission.createdAt,
+//         language,
+//         // code,
+//       });
+  
+//     } 
+//     catch (error) {
+//       console.error("Submit error:", error);
+
+//       // const submission = await Submission.create({
+//       //       problemId,
+//       //       userId,
+//       //       language,
+//       //       code,
+//       //       verdict: "Compilation error or execution error",
+//       //       input: testCase.input,
+//       //       output,
+//       //       expectedOutput: expected,
+//       //       failedTestCases: [{
+//       //         input: testCase.input,
+//       //         output,
+//       //         expectedOutput: expected,
+//       //       }]
+//       // });
+
+//       return res.status(500).json({
+//         success: false,
+//         message: error?.message || "Compilation or runtime error",
+//       });
+//     }
+// });
+
 app.post('/submit', async (req, res) => {
-    const { code, language, problemId} = req.body;
+    const { code, language, problemId } = req.body;
 
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ message: "User is Not loggeIn" });
-    }
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).json({ message: "User is Not logged in" });
+  }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); 
-    const userId = decoded._id; 
+  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  const userId = decoded._id;
 
+  if (!code || !language || !problemId || !userId) {
+    return res.status(400).json({
+      success: false,
+      message: "Code, language, userId, and problemId are required.",
+    });
+  }
 
-    if (!code || !language || !problemId || !userId) {
-      return res.status(400).json({
-        success: false,
-        message: "Code, language, userId, and problemId are required.",
-      });
-    }
-  
-    try {
-      const testcases = await Testcase.find({ problemId });
-  
-      for (const testCase of testcases) {
-        const filePath = generateFile(language, code);
-        const inputFilePath = generateInputFile(testCase.input);
-  
+  try {
+    const testcases = await Testcase.find({ problemId });
+
+    for (const testCase of testcases) {
+      const filePath = generateFile(language, code);
+      const inputFilePath = generateInputFile(testCase.input);
+
+      try {
         const rawOutput = await executeFile(filePath, inputFilePath, language);
         const output = rawOutput.replace(/\r\n/g, '\n').trim();
         const expected = testCase.expectedOutput.replace(/\r\n/g, '\n').trim();
-  
+
         if (output !== expected) {
+          // Wrong Answer
           const submission = await Submission.create({
-            problemId,
-            userId,
-            language,
-            code,
+            problemId, userId, language, code,
             verdict: "Wrong Answer",
             input: testCase.input,
             output,
             expectedOutput: expected,
-            failedTestCases: [{
-              input: testCase.input,
-              output,
-              expectedOutput: expected,
-            }]
+            failedTestCases: [{ input: testCase.input, output, expectedOutput: expected }]
           });
-  
+
           return res.status(200).json({
             verdict: "Wrong Answer",
-            failedTestCase: {
-              input: testCase.input,
-              output,
-              expected: expected,
-            },
-            timestamp: submission.createdAt, // Send back timestamp
+            failedTestCase: { input: testCase.input, output, expected },
+            timestamp: submission.createdAt,
             language,
           });
         }
-      }
-  
-      const acceptedSubmission = await Submission.create({
-        problemId,
-        userId,
-        language,
-        code,
-        verdict: "Accepted",
-      });
-      
-      const alreadySolved = await ProblemSolved.findOne({ userId, problemId });
 
-      if (!alreadySolved) {
-        await ProblemSolved.create({ userId, problemId });
-      }
+        // otherwise, continue to next test case
+      } catch (execError) {
 
-      return res.status(200).json({
-        verdict: "Accepted",
-        timestamp: acceptedSubmission.createdAt,
-        language,
-        // code,
-      });
-  
-    } 
-    catch (error) {
-      console.error("Submit error:", error);
+            const stderrMsg = ( execError.stderr || execError.error || execError || "Unknown error")
+            console.log("STDERR:", stderrMsg);
 
-      // const submission = await Submission.create({
-      //       problemId,
-      //       userId,
-      //       language,
-      //       code,
-      //       verdict: "Compilation error or execution error",
-      //       input: testCase.input,
-      //       output,
-      //       expectedOutput: expected,
-      //       failedTestCases: [{
-      //         input: testCase.input,
-      //         output,
-      //         expectedOutput: expected,
-      //       }]
-      // });
+            // Store in DB
+            const submission = await Submission.create({
+              problemId, userId, language, code,
+              verdict: "Compilation or Runtime Error",
+              input: testCase.input,
+              output: stderrMsg, //  guaranteed string
+              expectedOutput: null,
+              failedTestCases: [{
+                input: testCase.input,
+                output: stderrMsg, // guaranteed string
+                expectedOutput: testCase.expectedOutput,
+              }]
+            });
 
-      return res.status(500).json({
-        success: false,
-        message: error?.message || "Compilation or execution error",
-      });
-    }
+            console.log("Stored in DB")
+
+            // Send to frontend
+            return res.status(200).json({
+              verdict: "Compilation or Runtime Error",
+              error: stderrMsg,
+              failedTestCase: {
+                input: testCase.input,
+                output: stderrMsg,
+                expected: testCase.expectedOutput,
+              },
+              timestamp: submission.createdAt,
+              language,
+            });
+          }
+
+        }
+
+    // All passed → Accepted
+    const acceptedSubmission = await Submission.create({
+      problemId, userId, language, code, verdict: "Accepted"
+    });
+    await ProblemSolved.updateOne(
+      { userId, problemId }, {},
+      { upsert: true }
+    );
+    return res.status(200).json({
+      verdict: "Accepted",
+      timestamp: acceptedSubmission.createdAt,
+      language,
+    });
+
+  } catch (error) {
+    console.error("Submit error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal server error",
+    });
+  }
 });
 
 
@@ -281,10 +391,6 @@ app.get('/submissions', async (req, res) => {
   }
 });
   
-// WE have not handled for compilation error and TLE & Runtime error & MLE....
-
-
-
 
 
 app.listen(port, () => {

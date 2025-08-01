@@ -62,7 +62,7 @@ COPY ./compiler /app
 COPY ./backend/models /app/backend/models
 COPY ./backend/database /app/backend/database
 COPY ./compiler/package.json /app
-COPY ./compiler/.env /app
+# COPY ./compiler/.env /app
 
 # Install Node.js dependencies
 RUN npm install

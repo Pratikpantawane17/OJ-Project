@@ -400,7 +400,8 @@ const handleSubmit = async () => {
 
     console.log("Submission result:", result);
 
-    console.log("Not printing")
+    setAiRecommendations({});
+    
     const newSubmission = {
       verdict: result.verdict,
       language: result.language || selectedLanguage,
@@ -420,7 +421,8 @@ const handleSubmit = async () => {
     console.error("Submit error:", error);
 
     const errorSubmission = {
-      verdict: error.response?.data?.message || error.message || "Submission Error",
+      // verdict: error.response?.data?.message || error.message || "Submission Error",
+      verdict: "Time limit exit",
       language: selectedLanguage,
       status: 'error',
       time: new Date().toLocaleString(),
@@ -852,20 +854,20 @@ const handleAIRecommendation = async (submissionIndex) => {
                 <div>
                   <div className="text-xs text-gray-400 mb-1">Input</div>
                   <pre className="bg-gray-900/50 p-3 rounded text-gray-100 text-xs font-mono overflow-x-auto">
-{submission.failedTestCase.input}</pre>
+{submission.failedTestCase?.input}</pre>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs text-red-400 mb-1">Your Output</div>
                     <pre className="bg-gray-900/50 p-3 rounded text-red-400 text-xs font-mono overflow-x-auto">
-{submission.failedTestCase.output}</pre>
+{submission.failedTestCase?.output}</pre>
                   </div>
                   
                   <div>
                     <div className="text-xs text-green-400 mb-1">Expected Output</div>
                     <pre className="bg-gray-900/50 p-3 rounded text-green-400 text-xs font-mono overflow-x-auto">
-{submission.failedTestCase.expected || submission.failedTestCase.expectedOutput}</pre>
+{submission.failedTestCase?.expected || submission.failedTestCase?.expectedOutput}</pre>
                   </div>
                 </div>
               </div>

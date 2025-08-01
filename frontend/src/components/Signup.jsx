@@ -53,7 +53,6 @@ const SignUp = () => {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: 'colored'
       });
       setTimeout(() => {
         navigate('/login');
@@ -64,7 +63,6 @@ const SignUp = () => {
       toast.error(error.response?.data?.message || 'Signup failed. Please try again.', {
         position: 'top-right',
         autoClose: 3000,
-        theme: 'colored'
       }); 
     } finally {
       setLoading(false);

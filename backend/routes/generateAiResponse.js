@@ -32,9 +32,9 @@ Current Code:
 ${submission.code}
 
 Failed on:
-Input: ${submission.failedTestCase.input}  
-Expected: ${submission.failedTestCase.expectedOutput}  
-Got: ${submission.failedTestCase.output}
+Input: ${submission.failedTestCase?.input}  
+Expected: ${submission.failedTestCase?.expectedOutput}  
+Got: ${submission.failedTestCase?.output}
 
 ➡️ Find the likely mistake based on the above.
 Reply with only a short explanation (max 3 lines). No fixed code.`

@@ -1,10 +1,11 @@
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-
 dotenv.config();
 
+const mongoose = require("mongoose");
+
 const DBConnection = async () => {
-    const MONGO_URL = process.env.MONGO_URL;
+     
+    // console.log(MONGO_URL) // gives undefined
     // mongoose.set('bufferCommands', false);  
 
     try {
@@ -12,8 +13,10 @@ const DBConnection = async () => {
         //     useNewUrlParser: true,
         //     useUnifiedTopology: true,
         // });
-        await mongoose.connect(MONGO_URL);
         
+        // console.log(process.env.MONGO_URL)
+        await mongoose.connect(process.env.MONGO_URL);
+         
 
         console.log("Connected to MongoDB");
     } catch(err) {

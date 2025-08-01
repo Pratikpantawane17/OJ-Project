@@ -21,11 +21,11 @@ const submissionSchema = new mongoose.Schema({
   },
   verdict: {
     type: String,
-    enum: ["Accepted", "Wrong Answer", "Time Limit Exceeded", "Compilation Error", "Runtime Error"],
-    //  enum: ["Accepted", "Wrong Answer", "Compilation Error"],
+    // enum: ["Accepted", "Wrong Answer", "Time Limit Exceeded", "Compilation Error", "Runtime Error"],
+     enum: ["Accepted", "Wrong Answer", "Compilation or Runtime Error"],
     required: true,
   },
-    errorMessage: {
+  errorMessage: {
     type: String,
     required: false,   // only present on compiler/runtime errors
   },
@@ -46,6 +46,10 @@ const submissionSchema = new mongoose.Schema({
   executionTime: {
     type: String, // We can convert this to number
   },
+  // Add this when dealing with TLE, Runtime, MLE, etc.
+  // errorMessage : {
+  //   type: String,
+  // },
   failedTestCases: [
     {
       input: {
@@ -58,7 +62,7 @@ const submissionSchema = new mongoose.Schema({
       },
       expectedOutput: {
         type: String,
-        required: true,
+        required: false,  // this is becaue in order to handle the compilation or runtime errors... 
       },
     },
   ],
