@@ -1,6 +1,9 @@
 // Stateless Authentication : 
-const jwt = require('jsonwebtoken');
 const dotenv = require("dotenv");
+dotenv.config();
+
+const jwt = require('jsonwebtoken');
+
 
 function setUser(user) {
     const payload = {
