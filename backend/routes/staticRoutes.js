@@ -83,10 +83,11 @@ router.post('/login', async (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: "None",
-    maxAge: maxAge
+    maxAge: maxAge,
   });
 
-  return res.status(200).json({ message: "Login successful" });
+   // Switching to Bearer tokens
+  return res.status(200).json({ message: "Login successful", token});
 });
 
 // add necessary things

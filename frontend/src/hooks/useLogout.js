@@ -12,6 +12,9 @@ const useLogout = () => {
         withCredentials: true,
       });
 
+      // Clear token from localStorage (Bearer)
+      localStorage.removeItem("token");
+
       toast.success("Logged out successfully!", {
         autoClose: 1500,
       });

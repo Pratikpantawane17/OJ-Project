@@ -3,7 +3,8 @@ dotenv.config();
 
 const express = require("express");
 const app = express();
-const port = 8000;
+// const port = 8000;
+const port = process.env.PORT || 8000;
 const { generateFile } = require("./generateFile");
 const { generateInputFile } = require("./generateInputFile");
 const { executeFile } = require("./executeFile");
@@ -32,7 +33,7 @@ DBConnection();
 console.log(process.env.IS_DOCKER);
 
 app.use(cors({
-  origin : 'http://localhost:5173',
+  origin : process.env.FRONTEND_URL,
   credentials: true,
 }));
 
@@ -244,11 +245,18 @@ app.post('/run', async (req, res) => {
 // });
 
 app.post('/submit', async (req, res) => {
-    const { code, language, problemId } = req.body;
+  const { code, language, problemId } = req.body;
 
-  const token = req.cookies.token;
+  // const token = req.cookies.token;
+  // if (!token) {
+  //   return res.status(401).json({ message: "User is Not logged in" });
+  // }
+
+  // Switching to Bearer tokens
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.replace("Bearer ", "");
   if (!token) {
-    return res.status(401).json({ message: "User is Not logged in" });
+    return res.status(401).json({ message: "Missing auth token" });
   }
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -357,9 +365,16 @@ app.post('/submit', async (req, res) => {
 app.get('/submissions', async (req, res) => {
   // console.log("Fetching submissions for user:", req.user._id);
   try {
-    const token = req.cookies.token;
+    // const token = req.cookies.token;
+    // if (!token) {
+    //   return res.status(401).json({ message: "User not logged in" });
+    // }
+
+    // Switching to Bearer tokens
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.replace("Bearer ", "");
     if (!token) {
-      return res.status(401).json({ message: "User not logged in" });
+      return res.status(401).json({ message: "Missing auth token" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
