@@ -80,8 +80,8 @@ router.post('/logout', (req, res) => {
     
     res.clearCookie('token', {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production', // Use secure in production
-      sameSite: 'strict'
+      secure: true,
+      sameSite: "None",
     });
     
     return res.status(200).json({

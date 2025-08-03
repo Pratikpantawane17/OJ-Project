@@ -47,7 +47,10 @@ const Login = () => {
         withCredentials: true
       });
       console.log('Login success:', response.data);
-      // TODO: Handle token, redirect, toast, etc.
+
+       // Switching to Bearer tokens
+      localStorage.setItem("token", response.data.token);
+      console.log(response.data.token)
 
       // ✅ Show Success Toast
       toast.success('Login Successful! Redirecting...', {

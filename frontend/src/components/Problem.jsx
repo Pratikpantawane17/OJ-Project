@@ -75,6 +75,11 @@ const CollapsibleSection = ({ title, children, defaultOpen = true }) => {
 
 // Main Problem Page Component
 const ProblemPage = ({ id }) => {
+
+  // Switching to Bearer tokens
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error("No auth token");
+
   const params = useParams(); // ✅ Correct usage
   const problemId = params?.id || id;  
   const navigate = useNavigate();
@@ -216,6 +221,9 @@ public class Main {
         `${import.meta.env.VITE_COMPILER_URL}/submissions`,
         {
           params: { problemId }, // send problemId as query param
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
           withCredentials: true,
         }
       );
@@ -394,9 +402,15 @@ const handleSubmit = async () => {
   try {
     const { data: result } = await axios.post(
       `${import.meta.env.VITE_COMPILER_URL}/submit`,
-      { language: selectedLanguage, code, problemId },
-      { withCredentials: true }
+        { language: selectedLanguage, code, problemId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
     );
+
 
     console.log("Submission result:", result);
 
