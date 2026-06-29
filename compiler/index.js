@@ -43,6 +43,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
+// Kubernetes liveness and readiness probes hit this to check if pod is alive
+app.get('/health', (req, res) => {
+  console.log('[health] probe hit');   // Promtail picks this up → visible in Grafana Loki
+  res.status(200).json({ status: 'ok' });
+});
+
 
 // Orignal Routes (Run & Submit --> For this older version routes we do not require the above functions) : 
 

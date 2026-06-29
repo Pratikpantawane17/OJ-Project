@@ -37,6 +37,13 @@ app.use(checkForAuthorization);
 
 
 
+
+// Kubernetes liveness and readiness probes hit this to check if pod is alive
+app.get('/health', (req, res) => {
+  console.log('[health] probe hit');   // Promtail picks this up → visible in Grafana Loki
+  res.status(200).json({ status: 'ok' });
+});
+
 // routes
 app.use('/', staticRoutes);
 app.use('/user', restrictNotTo(["USER", "ADMIN"]), userRoutes);
